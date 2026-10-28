@@ -2,7 +2,7 @@
 layout: runbook
 title: '#4471 review · separate causes, separate tickets'
 owner: devilnest
-status: proposed
+status: reviewed
 reviewed: '2026-10-28'
 signature: 'v1.eyJzdWIiOiIzMTI0IiwiYXVkIjoiY2hhbGxlbmdlOndoYXQtaXQtc2hvd3MiLCJpYXQiOjE3OTMyMDg3NzUsImV4cCI6MTc5MzI5NTE3NX0.0fVvIOlYMwSBcYGuZ7M9eYCDsZIQok6kP85qUbFUypI'
 ---
@@ -10,7 +10,7 @@ signature: 'v1.eyJzdWIiOiIzMTI0IiwiYXVkIjoiY2hhbGxlbmdlOndoYXQtaXQtc2hvd3MiLCJpY
 <script>
   import SplitSummary from '#lib/kb/SplitSummary.svelte';
   import QueueFacts from '#lib/kb/QueueFacts.svelte';
-  import CauseTable from '#lib/kb/CauseTable.svelte';
+  import EngineeringOutcome from '#lib/kb/EngineeringOutcome.svelte';
   import QueueTimeline from '#lib/kb/QueueTimeline.svelte';
   import DedupeExplorer from '#lib/kb/DedupeExplorer.svelte';
   import Callout from '#lib/kb/Callout.svelte';
@@ -18,7 +18,13 @@ signature: 'v1.eyJzdWIiOiIzMTI0IiwiYXVkIjoiY2hhbGxlbmdlOndoYXQtaXQtc2hvd3MiLCJpY
   import { timelineEnd } from '#lib/kb/incident-4471';
 </script>
 
-The [original incident](/kb/incidents/4471) says one issue and one queued fix. Its own computed cause table contradicts that claim. This review splits the exported reports by the desk's executable classifier, gives each cause its own ticket, and proposes a safer intake rule. It does not establish that either product bug has been fixed.
+The [original incident](/kb/incidents/4471) says one issue and one queued fix. Its own computed cause table contradicts that claim. This review splits the exported reports by the desk's executable classifier, gives each cause its own ticket, and proposes a safer intake rule. The later engineering update closes the parser as fixed and the hint as won't fix because booking-v3 was retired.
+
+## Engineering outcome · desk update after first submission
+
+<EngineeringOutcome />
+
+The exact copied update and its provenance are retained in evidence/engineering-update.md. The old incident's queued-fix text describes the export's earlier state; use the later engineering outcome for closure. The new cause-based intake policy below remains a proposal, not an adopted decision.
 
 ## What the export shows
 
@@ -32,7 +38,7 @@ The shared parser assumes month/day order while day-first tenants write day/mont
 
 For example, R-41200 is an app report from harbour.dental (en-GB, booking-v2): a 7 April reminder became 4 July. R-41201 corrects the direction in the reporter's account; it is a different report ID, not an export duplicate. Preserve that correction and verify against actual booking values when reproducing.
 
-Fix the parser to use an explicit tenant date order or an unambiguous structured date. Test ambiguous and unambiguous dates across supported tenant locales and channels. Validate the stored booking, reminder and invite date together. A parser change alone does not repair the form's misleading hint.
+Engineering now reports the parser fixed: fix(dates): parse dd/mm for eu locales. Close this cause as completed. Regression criteria are ambiguous and unambiguous dates across supported tenant locales and channels, with the stored booking, reminder and invite checked together. These are verification criteria, not tests run by this review. A parser change alone does not repair the form's misleading hint.
 
 ## Problem B · booking-v3 tells day-first users to type month first
 
@@ -40,7 +46,7 @@ The booking-v3 hint prints MM/DD/YYYY for day-first tenants, while that form int
 
 The affected form reports belong to alder.physio (de-DE), copper.studio (es-ES), and pale.harbour (pt-PT). R-41230 is copper.studio via form, tagged parser at intake but classified hint by the tenant and channel. R-41241 is alder.physio via form with browser locale en-US: the tenant remains de-DE. R-41251 is pale.harbour via form, also tagged parser. These examples show why the browser cannot decide the cause.
 
-Align the displayed hint, validation, parser and confirmation with the tenant's locale. Test a user following the displayed hint, including ambiguous dates, for each affected tenant. Retest booking-v2 and app/email paths independently. Track and verify this fix on its own ticket.
+Engineering chose won't fix because the booking-v3 form was retired. Close this cause as not planned, not completed: no hint patch is claimed. If that form or date-entry flow returns, align its hint, validation, parser and confirmation with the tenant's locale and test users following the displayed hint. Keep that future verification separate from the parser fix.
 
 ## Symptoms that need another look
 
@@ -48,7 +54,7 @@ The desk notes flag the reports listed above as reading like a one-day move. The
 
 Keep them in the parser count, footnote the uncertainty, and ask for the original input, stored timestamp, tenant and client time zones, DST context, and invite payload. A third root cause is not established by this export. If investigation confirms one, move those report IDs to a separate ticket and reconcile both counts without double counting.
 
-## The desk is still working
+## Queue history before engineering closure
 
 <QueueFacts />
 
@@ -74,6 +80,6 @@ The old “merge when unsure” rule can conceal a second problem behind a known
 
 Run npm ci --ignore-scripts, then npm run build. The .svx imports the export's components, classifier, tenant glob, timeline, layout and RenderStamp rather than transcribing their output. Rendered HTML, CSS and JavaScript are in rendered/. Run npm run preview to see the desk's page at /kb/incidents/4471-split/.
 
-The audit script writes one ID-to-cause assignment per unique merged report to evidence/report-assignments.json. Each ticket links its exact report IDs and the page. Before the next desk handover, refresh the export, rebuild, reconcile counts and flagged evidence, and review the proposed merge rule with the desk.
+The audit script writes one ID-to-cause assignment per unique merged report to evidence/report-assignments.json. Each ticket links its exact report IDs and the page. At a later desk handover, refresh the export, rebuild, reconcile counts and flagged evidence, and review the proposed merge rule with the desk. Preserve the distinct fixed and won't-fix closure reasons unless newer engineering evidence changes them.
 
 <RenderStamp {signature} />

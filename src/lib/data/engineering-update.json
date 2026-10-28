@@ -1,0 +1,18 @@
+{
+  "source": "Student-provided copy from signed-in S01E03 Challenge page",
+  "sourceUrl": "https://hq.mega.dev/challenges/what-it-shows",
+  "receivedOn": "2026-10-28",
+  "ticket": 4471,
+  "closedOn": "2026-10-05",
+  "dateContext": "05 Oct in the 2026 incident; year inferred from the source export context",
+  "parser": {
+    "outcome": "fixed",
+    "stateReason": "completed",
+    "evidence": "fix(dates): parse dd/mm for eu locales"
+  },
+  "hint": {
+    "outcome": "won't fix",
+    "stateReason": "not_planned",
+    "evidence": "booking-v3 form retired"
+  }
+}

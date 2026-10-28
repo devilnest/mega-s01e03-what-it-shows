@@ -1,10 +1,11 @@
 # S01E03 — what it shows
 
-Source: the student's supplied kb-export-267efc5e.zip, exported 2026-10-04. Original export files are preserved byte for byte. This repo adds a signed review and a reproducible renderer; it does not change the product or claim a fix was deployed.
+Source: the student's supplied kb-export-267efc5e.zip, exported 2026-10-04. Original export files are preserved byte for byte. This repo adds a signed review and a reproducible renderer; it does not change the product. The later engineering update reports the parser fixed and the hint won't fix because booking-v3 was retired.
 
 - New page source: [src/routes/kb/incidents/4471-split/+page.svx](src/routes/kb/incidents/4471-split/+page.svx).
 - Desk page, rendered from that source and the supplied components: [rendered/kb/incidents/4471-split/index.html](rendered/kb/incidents/4471-split/index.html). The whole rendered/ tree contains its CSS, JavaScript and linked KB pages.
 - Reproducible report coverage: [evidence/report-assignments.json](evidence/report-assignments.json).
+- Later closure evidence: [engineering update](evidence/engineering-update.md). Parser closes as completed; hint closes as not planned.
 - GitHub issues in this repo are the two cause tickets. Their bodies give counts, all report IDs, evidence, reproduction steps and verification criteria. See [the issues](https://github.com/devilnest/mega-s01e03-what-it-shows/issues).
 
 ## View and reproduce
