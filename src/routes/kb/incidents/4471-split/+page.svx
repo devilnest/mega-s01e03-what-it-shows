@@ -1,0 +1,79 @@
+---
+layout: runbook
+title: '#4471 review · separate causes, separate tickets'
+owner: devilnest
+status: proposed
+reviewed: '2026-10-28'
+signature: 'v1.eyJzdWIiOiIzMTI0IiwiYXVkIjoiY2hhbGxlbmdlOndoYXQtaXQtc2hvd3MiLCJpYXQiOjE3OTMyMDg3NzUsImV4cCI6MTc5MzI5NTE3NX0.0fVvIOlYMwSBcYGuZ7M9eYCDsZIQok6kP85qUbFUypI'
+---
+
+<script>
+  import SplitSummary from '#lib/kb/SplitSummary.svelte';
+  import QueueFacts from '#lib/kb/QueueFacts.svelte';
+  import CauseTable from '#lib/kb/CauseTable.svelte';
+  import QueueTimeline from '#lib/kb/QueueTimeline.svelte';
+  import DedupeExplorer from '#lib/kb/DedupeExplorer.svelte';
+  import Callout from '#lib/kb/Callout.svelte';
+  import RenderStamp from '#lib/kb/RenderStamp.svelte';
+  import { timelineEnd } from '#lib/kb/incident-4471';
+</script>
+
+The [original incident](/kb/incidents/4471) says one issue and one queued fix. Its own computed cause table contradicts that claim. This review splits the exported reports by the desk's executable classifier, gives each cause its own ticket, and proposes a safer intake rule. It does not establish that either product bug has been fixed.
+
+## What the export shows
+
+<SplitSummary />
+
+These tables recompute from the report export and tenant directory whenever the KB is built. The rendered page is a snapshot of the supplied 2026-10-04 export, not a live connection to the desk. Replace the export and rebuild to include new reports; reconcile the GitHub issue counts at the same time.
+
+## Problem A · shared parser reads month first
+
+The shared parser assumes month/day order while day-first tenants write day/month. A date such as 07/04 can become 4 July instead of 7 April. This cause covers app and email reports and form reports whose tenant does not use the month-first booking-v3 hint. It spans both booking-form versions; a version alone is not the grouping rule.
+
+For example, R-41200 is an app report from harbour.dental (en-GB, booking-v2): a 7 April reminder became 4 July. R-41201 corrects the direction in the reporter's account; it is a different report ID, not an export duplicate. Preserve that correction and verify against actual booking values when reproducing.
+
+Fix the parser to use an explicit tenant date order or an unambiguous structured date. Test ambiguous and unambiguous dates across supported tenant locales and channels. Validate the stored booking, reminder and invite date together. A parser change alone does not repair the form's misleading hint.
+
+## Problem B · booking-v3 tells day-first users to type month first
+
+The booking-v3 hint prints MM/DD/YYYY for day-first tenants, while that form interprets input in the tenant's day-first order. Following the hint therefore swaps month and day. This is a separate form contract failure, not another browser label for Problem A.
+
+The affected form reports belong to alder.physio (de-DE), copper.studio (es-ES), and pale.harbour (pt-PT). R-41230 is copper.studio via form, tagged parser at intake but classified hint by the tenant and channel. R-41241 is alder.physio via form with browser locale en-US: the tenant remains de-DE. R-41251 is pale.harbour via form, also tagged parser. These examples show why the browser cannot decide the cause.
+
+Align the displayed hint, validation, parser and confirmation with the tenant's locale. Test a user following the displayed hint, including ambiguous dates, for each affected tenant. Retest booking-v2 and app/email paths independently. Track and verify this fix on its own ticket.
+
+## Symptoms that need another look
+
+The desk notes flag the reports listed above as reading like a one-day move. Their bodies include a weekday shift, June-only shifts, an invite arriving before booking, and Lisbon/Toronto seeing different days. The supplied classifier places them in parser by tenant and channel; the code does not prove that their symptom has the same underlying cause.
+
+Keep them in the parser count, footnote the uncertainty, and ask for the original input, stored timestamp, tenant and client time zones, DST context, and invite payload. A third root cause is not established by this export. If investigation confirms one, move those report IDs to a separate ticket and reconcile both counts without double counting.
+
+## The desk is still working
+
+<QueueFacts />
+
+<QueueTimeline ticket={4471} to={timelineEnd} />
+
+The product context mentions sched-prod serving about 300k people. That is the service's scale, not a count of affected people. The export counts reports; it does not establish distinct customers, all affected bookings, total losses, or a reliable severity ranking from volume alone.
+
+## Replace subject-only merging with cause review
+
+[Decision 0001](/kb/decisions/0001-dedupe-by-subject) and the [triage guide](/kb/triage/dedupe) were last reviewed on 2024-06-11. The shared layout marks them stale after the configured half-year threshold. Accepted decisions are immutable: retain 0001 as history and propose a new decision rather than silently rewriting it.
+
+Proposed replacement: resolve the tenant; inspect locale, form version, channel and symptoms; merge only when the cause matches. A subject is a search hint. Matching subjects can hide different causes, and different subjects can describe the same cause. Unknown tenants or inconsistent evidence stay unplaced for review; do not automatically merge them. The executable examples below exercise these distinctions.
+
+<DedupeExplorer />
+
+The app/email pair is the same parser cause despite different subjects. The alder.physio form/app pair has the same subject but different causes. The copper.studio/morrow.tax form pair also has the same subject but different causes. The pale.harbour/alder.physio form pair shares a hint cause despite different subjects. Two unknown senders with matching subjects are not a proven duplicate.
+
+<Callout kind="warn">
+The old “merge when unsure” rule can conceal a second problem behind a known ticket. Keep separate cause tickets, document unknowns, and use verified fixes and new intake evidence to decide whether to close them. This proposed workflow needs desk approval before it becomes policy.
+</Callout>
+
+## Reproduce and refresh
+
+Run npm ci --ignore-scripts, then npm run build. The .svx imports the export's components, classifier, tenant glob, timeline, layout and RenderStamp rather than transcribing their output. Rendered HTML, CSS and JavaScript are in rendered/. Run npm run preview to see the desk's page at /kb/incidents/4471-split/.
+
+The audit script writes one ID-to-cause assignment per unique merged report to evidence/report-assignments.json. Each ticket links its exact report IDs and the page. Before the next desk handover, refresh the export, rebuild, reconcile counts and flagged evidence, and review the proposed merge rule with the desk.
+
+<RenderStamp {signature} />
